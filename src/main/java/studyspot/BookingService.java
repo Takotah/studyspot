@@ -51,18 +51,28 @@ public class BookingService {
         }
         for (Booking b : store.bookingsForRoom(roomId, BookingStatus.BOOKED)) {
         	if (overlaps(start, end, b.start(), b.end())) {
-        		throw new BookingException("Room " + roomId + " is already booked for that time. ");
+        		throw new BookingException("Room " + roomId + " is already booked for that time.");
         	}
         }
 
         return store.addBooking(roomId, studentId, start, end);
     }
 
-    /** Cancels a booking. Students may cancel only their own bookings. */
-    public void cancel(int bookingId, String studentId) {
-        // TODO (Task 4): implement cancelling.
-        throw new UnsupportedOperationException("Cancelling is not written yet.");
-    }
+    	/** Cancels a booking. Students may cancel only their own bookings. */
+    	public void cancel(int bookingId, String studentId) {
+    	    Booking b = store.getBooking(bookingId);
+    	    if (b == null) {
+    	        throw new BookingException("There is no booking " + bookingId + ".");
+    	    }
+    	    if (!b.studentId().equals(studentId)) {
+    	        throw new BookingException("You can only cancel your own bookings.");
+    	    }
+    	    if (b.status() != BookingStatus.BOOKED) {
+    	        throw new BookingException("Only booked bookings can be cancelled.");
+    	    }
+    	    store.setStatus(bookingId, BookingStatus.CANCELLED);
+    	}
+        
 
     public List<Booking> bookingsForStudent(String studentId) {
         return store.bookingsForStudent(studentId);
