@@ -46,7 +46,9 @@ public class BookingService {
         }
         LocalDateTime end = start.plusMinutes(minutes);
 
-        // TODO (Task 4): a booking must be between 30 and 120 minutes long.
+        if (minutes < 30 || minutes > 120) {
+        	throw new BookingException("Bookings must be between 30 and 120 minutes long.");
+        }
         // TODO (Task 4): a room must never be booked twice for the same time.
 
         return store.addBooking(roomId, studentId, start, end);
