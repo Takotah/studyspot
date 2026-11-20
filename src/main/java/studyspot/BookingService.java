@@ -49,7 +49,11 @@ public class BookingService {
         if (minutes < 30 || minutes > 120) {
         	throw new BookingException("Bookings must be between 30 and 120 minutes long.");
         }
-        // TODO (Task 4): a room must never be booked twice for the same time.
+        for (Booking b : store.bookingsForRoom(roomId, BookingStatus.BOOKED)) {
+        	if (overlaps(start, end, b.start(), b.end())) {
+        		throw new BookingException("Room " + roomId + " is already booked for that time. ");
+        	}
+        }
 
         return store.addBooking(roomId, studentId, start, end);
     }
