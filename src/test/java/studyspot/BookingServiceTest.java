@@ -40,4 +40,26 @@ class BookingServiceTest {
     void bookingAnUnknownRoomIsRejected() {
         assertThrows(BookingException.class, () -> service.book("S1", 99, START, 60));
     }
+    @Test
+    void bookingShorterThan30MinutesIsRejected() {
+        assertThrows(BookingException.class, () -> service.book("S1", 1, START, 29));
+    }
+
+    @Test
+    void bookingLongerThan120MinutesIsRejected() {
+        assertThrows(BookingException.class, () -> service.book("S1", 1, START, 121));
+    }
+
+    @Test
+    void doubleBookingTheSameRoomIsRejected() {
+        service.book("S1", 1, START, 60);
+        assertThrows(BookingException.class,
+                () -> service.book("S2", 1, START.plusMinutes(30), 60));
+    }
+
+    @Test
+    void studentCannotCancelAnotherStudentsBooking() {
+        Booking b = service.book("S1", 1, START, 60);
+        assertThrows(BookingException.class, () -> service.cancel(b.bookingId(), "S2"));
+    }
 }
