@@ -41,18 +41,30 @@ public class BookingService {
 
     /** Books a room and returns the new booking. */
     public Booking book(String studentId, int roomId, LocalDateTime start, int minutes) {
+        return book(studentId, roomId, start, minutes, LocalDateTime.now());
+    }
+
+    /** Books a room. The current time is passed in so tests can choose it. */
+    public Booking book(String studentId, int roomId, LocalDateTime start, int minutes,
+                        LocalDateTime now) {
+        if (studentId == null || studentId.isBlank()) {
+            throw new BookingException("A student ID is required.");
+        }
         if (store.getRoom(roomId) == null) {
             throw new BookingException("There is no room " + roomId + ".");
+        }
+        if (start.isBefore(now)) {
+            throw new BookingException("Bookings cannot start in the past.");
         }
         LocalDateTime end = start.plusMinutes(minutes);
 
         if (minutes < 30 || minutes > 120) {
-        	throw new BookingException("Bookings must be between 30 and 120 minutes long.");
+            throw new BookingException("Bookings must be between 30 and 120 minutes long.");
         }
         for (Booking b : store.bookingsForRoom(roomId, BookingStatus.BOOKED)) {
-        	if (overlaps(start, end, b.start(), b.end())) {
-        		throw new BookingException("Room " + roomId + " is already booked for that time.");
-        	}
+            if (overlaps(start, end, b.start(), b.end())) {
+                throw new BookingException("Room " + roomId + " is already booked for that time.");
+            }
         }
 
         return store.addBooking(roomId, studentId, start, end);

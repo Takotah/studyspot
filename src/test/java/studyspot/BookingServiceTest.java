@@ -62,4 +62,14 @@ class BookingServiceTest {
         Booking b = service.book("S1", 1, START, 60);
         assertThrows(BookingException.class, () -> service.cancel(b.bookingId(), "S2"));
     }
+    @Test
+    void bookingThatStartsInThePastIsRejected() {
+        LocalDateTime now = START.plusDays(1);   // pretend it is the day after START
+        assertThrows(BookingException.class, () -> service.book("S1", 1, START, 60, now));
+    }
+
+    @Test
+    void bookingWithAnEmptyStudentIdIsRejected() {
+        assertThrows(BookingException.class, () -> service.book("  ", 1, START, 60));
+    }
 }
