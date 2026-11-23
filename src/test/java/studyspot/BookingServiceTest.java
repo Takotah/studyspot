@@ -72,4 +72,33 @@ class BookingServiceTest {
     void bookingWithAnEmptyStudentIdIsRejected() {
         assertThrows(BookingException.class, () -> service.book("  ", 1, START, 60));
     }
+    @Test
+    void bookingIsCancelledWhenNotCheckedInWithin15Minutes() {
+        service.book("S1", 1, START, 60);
+        service.cancelNoShows(START.plusMinutes(15));
+        assertEquals(BookingStatus.CANCELLED, service.bookingsForStudent("S1").get(0).status());
+    }
+
+    @Test
+    void bookingIsNotCancelledBefore15MinutesHavePassed() {
+        service.book("S1", 1, START, 60);
+        service.cancelNoShows(START.plusMinutes(14));
+        assertEquals(BookingStatus.BOOKED, service.bookingsForStudent("S1").get(0).status());
+    }
+
+    @Test
+    void checkedInBookingIsNotCancelledAsNoShow() {
+        Booking b = service.book("S1", 1, START, 60);
+        service.checkIn(b.bookingId(), "S1");
+        service.cancelNoShows(START.plusMinutes(30));
+        assertEquals(BookingStatus.CHECKED_IN, service.bookingsForStudent("S1").get(0).status());
+    }
+
+    @Test
+    void checkedInRoomIsStillNotFree() {
+        Booking b = service.book("S1", 1, START, 60);
+        service.checkIn(b.bookingId(), "S1");
+        assertFalse(service.freeRooms(START, START.plusMinutes(60)).stream()
+                .anyMatch(r -> r.roomId() == 1));
+    }
 }
