@@ -25,6 +25,7 @@ public class Main {
     private void run() {
         studentId = ask("Student ID: ");
         while (true) {
+        	service.cancelNoShows(LocalDateTime.now());
             System.out.println("""
 
                     StudySpot
@@ -32,6 +33,7 @@ public class Main {
                       2. Book a room
                       3. Cancel a booking
                       4. My bookings
+                      5. Check in to a booking
                       0. Quit""");
             String choice = ask("Choose: ");
             try {
@@ -41,7 +43,8 @@ public class Main {
                     case "2" -> bookRoom();
                     case "3" -> cancelBooking();
                     case "4" -> myBookings();
-                    default -> System.out.println("Please choose 0 to 4.");
+                    case "5" -> checkIn();
+                    default -> System.out.println("Please choose 0 to 5.");
                 }
             } catch (BookingException e) {
                 System.out.println("Sorry: " + e.getMessage());
@@ -87,6 +90,12 @@ public class Main {
         int bookingId = Integer.parseInt(ask("Booking number to cancel: "));
         service.cancel(bookingId, studentId);
         System.out.println("Booking cancelled.");
+    }
+    
+    private void checkIn() {
+        int bookingId = Integer.parseInt(ask("Booking number to check in: "));
+        service.checkIn(bookingId, studentId);
+        System.out.println("Checked in.");
     }
 
     private void myBookings() {
