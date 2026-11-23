@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class BookingService {
     private final BookingStore store;
+    private static final int NO_SHOW_MINUTES = 15;
 
     public BookingService(BookingStore store) {
         this.store = store;
@@ -22,12 +23,19 @@ public class BookingService {
         return startA.isBefore(endB) && startB.isBefore(endA);
     }
 
+    /** Bookings that currently hold a room: booked, or checked in */
+    private List<Booking> activeBookingsForRoom(int roomId) {
+    	List<Booking> active = new ArrayList<>();
+    	active.addAll(store.bookingsForRoom(roomId,  BookingStatus.BOOKED));
+    	active.addAll(store.bookingsForRoom(roomId,  BookingStatus.CHECKED_IN));
+    	return active; 
+    }
     /** Returns the rooms that have no active booking overlapping start to end. */
     public List<Room> freeRooms(LocalDateTime start, LocalDateTime end) {
         List<Room> free = new ArrayList<>();
         for (Room room : store.listRooms()) {
             boolean busy = false;
-            for (Booking b : store.bookingsForRoom(room.roomId(), BookingStatus.BOOKED)) {
+            for (Booking b : activeBookingsForRoom(room.roomId())) {
                 if (overlaps(start, end, b.start(), b.end())) {
                     busy = true;
                 }
@@ -61,7 +69,7 @@ public class BookingService {
         if (minutes < 30 || minutes > 120) {
             throw new BookingException("Bookings must be between 30 and 120 minutes long.");
         }
-        for (Booking b : store.bookingsForRoom(roomId, BookingStatus.BOOKED)) {
+        for (Booking b : activeBookingsForRoom(roomId)) {
             if (overlaps(start, end, b.start(), b.end())) {
                 throw new BookingException("Room " + roomId + " is already booked for that time.");
             }
