@@ -92,6 +92,32 @@ public class BookingService {
     	    }
     	    store.setStatus(bookingId, BookingStatus.CANCELLED);
     	}
+    	
+        /** A student checks in to their own booking. */
+        public void checkIn(int bookingId, String studentId) {
+            Booking b = store.getBooking(bookingId);
+            if (b == null) {
+                throw new BookingException("There is no booking " + bookingId + ".");
+            }
+            if (!b.studentId().equals(studentId)) {
+                throw new BookingException("You can only check in to your own bookings.");
+            }
+            if (b.status() != BookingStatus.BOOKED) {
+                throw new BookingException("Only booked bookings can be checked in.");
+            }
+            store.setStatus(bookingId, BookingStatus.CHECKED_IN);
+        }
+
+        /** Cancels every booking that is still BOOKED 15 minutes or more after its start time. */
+        public void cancelNoShows(LocalDateTime now) {
+            for (Room room : store.listRooms()) {
+                for (Booking b : store.bookingsForRoom(room.roomId(), BookingStatus.BOOKED)) {
+                    if (!now.isBefore(b.start().plusMinutes(NO_SHOW_MINUTES))) {
+                        store.setStatus(b.bookingId(), BookingStatus.CANCELLED);
+                    }
+                }
+            }
+        }
         
 
     public List<Booking> bookingsForStudent(String studentId) {
